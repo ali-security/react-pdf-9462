@@ -1,14 +1,12 @@
 name: Close stale issues
 
 on:
-  schedule:
-    - cron: '0 0 * * 1' # Every Monday
   workflow_dispatch:
 
 jobs:
   close-issues:
     name: Close stale issues
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Close stale issues
