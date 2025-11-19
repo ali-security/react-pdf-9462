@@ -178,6 +178,48 @@ describe('Document', () => {
       await expect(onSourceSuccessPromise2).resolves.toBe(OK);
       await expect(onLoadSuccessPromise2).resolves.toMatchObject(desiredLoadedPdf2);
     });
+
+    it('sets isEvalSupported to false for security (CVE-2024-34342)', async () => {
+      const { func: onLoadSuccess, promise: onLoadSuccessPromise } = makeAsyncCallback();
+
+      const getDocumentSpy = jest.spyOn(pdfjs, 'getDocument');
+
+      render(<Document file={pdfFile.arrayBuffer} onLoadSuccess={onLoadSuccess} />);
+
+      expect.assertions(2);
+
+      await onLoadSuccessPromise;
+
+      expect(getDocumentSpy).toHaveBeenCalled();
+      const callArgs = getDocumentSpy.mock.calls[0][0];
+      expect(callArgs.isEvalSupported).toBe(false);
+
+      getDocumentSpy.mockRestore();
+    });
+
+    it('sets isEvalSupported to false even when options prop is provided', async () => {
+      const { func: onLoadSuccess, promise: onLoadSuccessPromise } = makeAsyncCallback();
+
+      const getDocumentSpy = jest.spyOn(pdfjs, 'getDocument');
+
+      const customOptions = { cMapUrl: '/cmaps/', cMapPacked: true };
+
+      render(
+        <Document file={pdfFile.arrayBuffer} onLoadSuccess={onLoadSuccess} options={customOptions} />,
+      );
+
+      expect.assertions(4);
+
+      await onLoadSuccessPromise;
+
+      expect(getDocumentSpy).toHaveBeenCalled();
+      const callArgs = getDocumentSpy.mock.calls[0][0];
+      expect(callArgs.isEvalSupported).toBe(false);
+      expect(callArgs.cMapUrl).toBe('/cmaps/');
+      expect(callArgs.cMapPacked).toBe(true);
+
+      getDocumentSpy.mockRestore();
+    });
   });
 
   describe('rendering', () => {
